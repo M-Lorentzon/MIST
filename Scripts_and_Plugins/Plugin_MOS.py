@@ -30,9 +30,10 @@ class MOS_Script:
         self.o_file_handler = file_handler
         self.o_Text_Plotter = plotter
 
-        self.my_frame = tk.Frame(self.script_frame, bg=Defs.c_script_entries)
+        self.active = False
+        self.savable_script = True
 
-        self.script_active = False  # indicator of script activity
+        self.my_frame = tk.Frame(self.script_frame, bg=Defs.c_script_entries)
 
         # Label
         self.label = tk.Label(self.my_frame, text="MOS script settings", bg=Defs.c_script_name)
@@ -71,7 +72,7 @@ class MOS_Script:
 
     def callback_calculate(self):
         Data = self.o_file_handler.get_current_data()
-        Data.extract_columns("\t")
+        Data.extract_columns()
         time_col = Data.Column1
         val_col = Data.Column2
         self.update(time_col, val_col)

@@ -5,6 +5,7 @@ import user_config.PDF_Data as PDF
 from Util.My_Label_Entry import My_Label_Entry
 from Util.My_PDF_Card_Entry import My_PDF_Card_Entry
 from Util.My_PDF_Entry_Interactive import My_PDF_Entry_Interactive
+import tkscrolledframe as SF
 
 descr_new = """Add new PDF to the list of available
 cards. Lines where 2theta = 0 is 
@@ -33,7 +34,7 @@ class popup_settings:
         self.Parent = parent
         self.popup_window = tk.Toplevel(bg=Defs.c_frame_color)
 
-        self.popup_window.geometry("650x500")
+        self.popup_window.geometry("550x500")
         self.popup_window.title("PDF file settings")
 
         # Frames
@@ -45,6 +46,39 @@ class popup_settings:
         self.new_PDF_frame = tk.Frame(self.popup_window, bg=Defs.c_script_entries)
         self.mod_PDF_frame = tk.Frame(self.popup_window, bg=Defs.c_script_entries)
         self.swap_PDF_frame = tk.Frame(self.popup_window, bg=Defs.c_script_entries)
+
+        self.sframe1 = SF.ScrolledFrame(self.new_PDF_frame, width=280, height=200)
+        self.sframe1.grid(row=5, column=0, columnspan=3)
+        self.sframe1.config(bg=Defs.c_frame_color)
+        self.sframe1.bind_arrow_keys(self.new_PDF_frame)
+        self.sframe1.bind_scroll_wheel(self.new_PDF_frame)
+        self.new_PDF_frame_scrolled = self.sframe1.display_widget(tk.Frame)
+        self.new_PDF_frame_scrolled.config(bg=Defs.c_frame_color)
+
+        self.sframe2 = SF.ScrolledFrame(self.mod_PDF_frame, width=110, height=200)
+        self.sframe2.grid(row=2, column=0, rowspan=10)
+        self.sframe2.config(bg=Defs.c_frame_color)
+        self.sframe2.bind_arrow_keys(self.mod_PDF_frame)
+        self.sframe2.bind_scroll_wheel(self.mod_PDF_frame)
+        self.mod_PDF_frame_scrolled1 = self.sframe2.display_widget(tk.Frame)
+        self.mod_PDF_frame_scrolled1.config(bg=Defs.c_frame_color)
+
+        self.sframe3 = SF.ScrolledFrame(self.mod_PDF_frame, width=370, height=200)
+        self.sframe3.grid(row=2, column=1, rowspan=10)
+        self.sframe3.config(bg=Defs.c_frame_color)
+        self.sframe3.bind_arrow_keys(self.mod_PDF_frame)
+        self.sframe3.bind_scroll_wheel(self.mod_PDF_frame)
+        self.mod_PDF_frame_scrolled2 = self.sframe3.display_widget(tk.Frame)
+        self.mod_PDF_frame_scrolled2.config(bg=Defs.c_frame_color)
+
+        self.sframe4 = SF.ScrolledFrame(self.swap_PDF_frame, width=150, height=150)
+        self.sframe4.grid(row=5, column=0, columnspan=3)
+        self.sframe4.config(bg=Defs.c_frame_color)
+        self.sframe4.bind_arrow_keys(self.swap_PDF_frame)
+        self.sframe4.bind_scroll_wheel(self.swap_PDF_frame)
+        self.swap_PDF_frame_scrolled = self.sframe4.display_widget(tk.Frame)
+        self.swap_PDF_frame_scrolled.config(bg=Defs.c_frame_color)
+
         self.selection_indication = 0 # 0=New, 1=mod, 2=swap
         self.callback_new_pdf_button()
 
@@ -98,7 +132,7 @@ class popup_settings:
 
         increment = 0
         for card in self.Parent.PDF_Data_Containers:
-            self.total_pdf_list_swap.append(Util.My_Checkbutton.My_Checkbutton(self.swap_PDF_frame, self.function_swap_pdf,
+            self.total_pdf_list_swap.append(Util.My_Checkbutton.My_Checkbutton(self.swap_PDF_frame_scrolled, self.function_swap_pdf,
                                                                                card.name, 4 + increment, 0))
             increment += 1
 
@@ -121,7 +155,7 @@ class popup_settings:
         self.e_name = My_Label_Entry(self.new_PDF_frame, "Name: ", 2, 0)
         self.new_entries = []
         for i in range(15): # Make 15 entries!
-            self.new_entries.append(My_PDF_Card_Entry(self.new_PDF_frame, "", 0, 0, i+3, 0))
+            self.new_entries.append(My_PDF_Card_Entry(self.new_PDF_frame_scrolled, "", 0, 0, i+3, 0))
 
         #### Mod PDF stuff ####
         self.label_mod = tk.Label(self.mod_PDF_frame, text="Modify a PDF", bg=Defs.c_script_name)
@@ -133,18 +167,13 @@ class popup_settings:
         self.text.insert(0.0, descr_modify)
         self.text.config(state='disabled')
 
-        self.mod_frame_1 = tk.Frame(self.mod_PDF_frame, bg=Defs.c_script_entries)
-        self.mod_frame_1.grid(row=2, column=0, sticky="EW", rowspan=10)
-        self.mod_frame_2 = tk.Frame(self.mod_PDF_frame, bg=Defs.c_script_entries)
-        self.mod_frame_2.grid(row=2, column=1, sticky="EW", rowspan=10)
-
 
         self.total_list_of_pdfs_checkbuttons = []
         self.total_list_of_active_PDFs_peaks = []
 
         for index in range(len(self.Parent.PDF_Data_Containers)):
             self.total_list_of_pdfs_checkbuttons.append(
-                Util.My_Checkbutton.My_Checkbutton(self.mod_frame_1, self.function_modify_PDF,
+                Util.My_Checkbutton.My_Checkbutton(self.mod_PDF_frame_scrolled1, self.function_modify_PDF,
                                                    self.Parent.PDF_Data_Containers[index].name, 5+index, 0))
 
         for button in self.total_list_of_pdfs_checkbuttons:
@@ -175,7 +204,7 @@ class popup_settings:
         # Show current data
         for index in range(len(the_data)):
             self.total_list_of_active_PDFs_peaks.append(
-                My_PDF_Entry_Interactive(self.mod_frame_2, the_data[index][1],
+                My_PDF_Entry_Interactive(self.mod_PDF_frame_scrolled2, the_data[index][1],
                                          the_data[index][0], the_data[index][2], 1+index, 1))
 
         for index in the_activity_indices:
@@ -184,7 +213,7 @@ class popup_settings:
         # Add new rows for potentially adding rows to the PDF!
         for addition in range(4):
             self.total_list_of_active_PDFs_peaks.append(
-                My_PDF_Entry_Interactive(self.mod_frame_2, "", 0, 0, 2+len(the_data)+addition, 1))
+                My_PDF_Entry_Interactive(self.mod_PDF_frame_scrolled2, "", 0, 0, 2+len(the_data)+addition, 1))
 
     def function_swap_pdf(self):
         pass

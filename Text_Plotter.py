@@ -11,15 +11,15 @@ class Text_Plotter:
         self.frame_xrd1 = tk.Frame(self.master_frame)
         self.frame_pole_fig = tk.Frame(self.master_frame)
 
-        self.mos_text = ScrolledText(self.frame_mos, width=70, height=40)
+        self.mos_text = ScrolledText(self.frame_mos, width=70, height=58)
         self.mos_text.grid(row=0, column=0)
         self.mos_text.config(state="normal")
 
-        self.xrd1_text = ScrolledText(self.frame_xrd1, width=70, height=40)
+        self.xrd1_text = ScrolledText(self.frame_xrd1, width=70, height=58)
         self.xrd1_text.grid(row=0, column=0)
         self.xrd1_text.config(state="normal")
 
-        self.pole_fig_text = ScrolledText(self.frame_pole_fig, width=70, height=40)
+        self.pole_fig_text = ScrolledText(self.frame_pole_fig, width=70, height=58)
         self.pole_fig_text.grid(row=0, column=0)
         self.pole_fig_text.config(state="normal")
 

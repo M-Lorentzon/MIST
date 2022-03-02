@@ -29,9 +29,10 @@ class Plugin_XRD1:
         self.o_file_handler = file_handler
         self.o_Text_Plotter = plotter
 
-        self.my_frame = tk.Frame(self.script_frame, bg=Defs.c_script_entries)
+        self.active = False
+        self.savable_script = True
 
-        self.script_active = False  # indicator of script activity
+        self.my_frame = tk.Frame(self.script_frame, bg=Defs.c_script_entries)
 
         # Label
         self.label = tk.Label(self.my_frame, text="  XRD1 script settings  ", bg=Defs.c_script_name)
@@ -63,7 +64,7 @@ class Plugin_XRD1:
 
     def callback_calculate(self):
         Data = self.o_file_handler.get_current_data()
-        Data.extract_columns(" ")
+        Data.extract_columns()
         angle_col = Data.Column1
         intensity_col = Data.Column2
         self.update(angle_col, intensity_col)

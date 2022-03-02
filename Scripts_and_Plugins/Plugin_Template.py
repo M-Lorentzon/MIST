@@ -18,10 +18,12 @@ class Plugin_Template:
         # Label
         self.label = tk.Label(self.my_frame, text="Template script settings")
         self.label.grid(row=0, column=0)
+        self.label.config(font=('Helvetica', 12, 'bold'))
         # Text
         self.text = tk.Text(self.my_frame, width=40, height=15)
         self.text.grid(row=1, column=0)
         self.text.insert(0.0, Description)
+        self.text.config(state='disabled')
 
         # Entries
         self.Entry____ = My_Float_Entry(self.my_frame, "___", 600, 2, 0)

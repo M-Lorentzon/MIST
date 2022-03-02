@@ -16,7 +16,7 @@ t_intro = """Marcus Imaging and Scripting Tool - MIST
  Check the script description for details.
  
  
- CopyWright Marcus Lorentzon"""
+ Copyright Marcus Lorentzon"""
 
 c_red = "red"
 c_green = "green"

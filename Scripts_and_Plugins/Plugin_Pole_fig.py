@@ -1,7 +1,8 @@
 import tkinter as tk
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import ticker
+import tkscrolledframe as SF
+
 from Util.My_Float_Entry import My_Float_Entry
 from Util.My_Label_Entry import My_Label_Entry
 import Util.Definitions as Defs
@@ -36,15 +37,24 @@ class Plugin_Pole_fig:
         self.o_file_handler = file_handler # to get data from
         self.o_text_plotter = text_plotter # to be able to plot the data
 
+        self.active = False
+        self.savable_script = True
+
         self.my_frame = tk.Frame(self.script_frame, bg=Defs.c_script_entries)
+
+        self.sframe = SF.ScrolledFrame(self.my_frame, width=400, height=340)
+        self.sframe.grid(row=10, column=0, columnspan=3)
+        self.sframe.config(bg=Defs.c_frame_color)
+        self.sframe.bind_arrow_keys(self.my_frame)
+        self.sframe.bind_scroll_wheel(self.my_frame)
+        self.label_entry_frame = self.sframe.display_widget(tk.Frame)
+        self.label_entry_frame.config(bg=Defs.c_frame_color)
 
         self.master_button_frame = tk.Frame(self.my_frame, bg=Defs.c_script_entries)
         self.master_button_frame.grid(row=3, column=0)
         self.entry_frame = tk.Frame(self.my_frame, highlightbackground="black", highlightthickness=1, bg=Defs.c_script_entries)
         self.entry_frame.grid(row=4, column=0)
-        # Imported filename-frame.
-        self.label_entry_frame = tk.Frame(self.my_frame, highlightbackground="black", highlightthickness=1, bg=Defs.c_script_entries)
-        self.label_entry_frame.grid(row=10, column=0)
+
         self.plot_selection_frame = tk.Frame(self.my_frame, highlightbackground="black", highlightthickness=1, bg=Defs.c_script_entries)
         self.plot_selection_frame.grid(row=5, column=0)
         self.plot_2D_frame = tk.Frame(self.my_frame, highlightbackground="black", highlightthickness=1, bg=Defs.c_script_entries)
@@ -285,7 +295,7 @@ class Plugin_Pole_fig:
     def callback_import_button(self):
         self.no_files_index += 1
         data = self.o_file_handler.get_current_data()
-        data.extract_columns(" ")
+        data.extract_columns()
         self.file_data.append(data)
 
         new_entry = My_Float_Entry(self.label_entry_frame, data.file_name, 0, self.no_files_index, 0)
@@ -296,7 +306,7 @@ class Plugin_Pole_fig:
 
         for data_in_file in self.o_file_handler.List_of_file_contents:
             self.no_files_index += 1
-            data_in_file.extract_columns(" ")
+            data_in_file.extract_columns()
             self.file_data.append(data_in_file)
 
             new_entry = My_Float_Entry(self.label_entry_frame, data_in_file.file_name, 0, self.no_files_index, 0)

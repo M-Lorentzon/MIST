@@ -1,4 +1,3 @@
-import PDF_data.PDF_data as PDF  # To be replaced with json
 import user_config.popup_settings as popup
 import user_config.PDF_Data as container
 import json

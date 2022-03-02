@@ -3,9 +3,9 @@ from Util.My_Float_Entry import My_Float_Entry
 from Util.My_Label_Entry import My_Label_Entry
 from Util.color_selector import Color_Selector
 
+import tkscrolledframe as SF
 import matplotlib.pyplot as plt
 import Util.Definitions as Defs
-import PDF_data.PDF_data as PDF
 import user_config.PFD_Settings_Handler as PDF_Settings
 
 from math import log1p
@@ -38,8 +38,19 @@ class Plot_Stacked_Graphs:
         self.o_file_handler = file_handler # to get data from
         self.o_pdf_settings = PDF_Settings.PDF_Settings_Handler(self)
 
+        self.active = False
+        self.savable_script = False
+
         # Private frames
         self.my_frame = tk.Frame(self.script_frame, bg=Defs.c_script_entries) # Master within this scope
+
+        self.sframe = SF.ScrolledFrame(self.my_frame, width=400, height=260)
+        self.sframe.grid(row=11, column=0, columnspan=3)
+        self.sframe.config(bg=Defs.c_frame_color)
+        self.sframe.bind_arrow_keys(self.my_frame)
+        self.sframe.bind_scroll_wheel(self.my_frame)
+        self.label_entry_frame = self.sframe.display_widget(tk.Frame)
+        self.label_entry_frame.config(bg=Defs.c_frame_color)
 
         self.master_button_frame = tk.Frame(self.my_frame, bg=Defs.c_script_entries)
         self.master_button_frame.grid(row=3, column=0)
@@ -55,11 +66,6 @@ class Plot_Stacked_Graphs:
         self.add_line_to_plot_frame = tk.Frame(self.my_frame, highlightbackground="black", highlightthickness=1, bg=Defs.c_script_entries)
         self.add_line_to_plot_frame.grid(row=8, column=0)
 
-
-        # Imported filename-frame.
-        self.label_entry_frame = tk.Frame(self.my_frame, highlightbackground="black", highlightthickness=1, bg=Defs.c_script_entries)
-        self.label_entry_frame.grid(row=11, column=0)
-
         # Master label
         self.label = tk.Label(self.my_frame, text="XRD stacked lines settings", bg=Defs.c_script_name)
         self.label.grid(row=0, column=0)
@@ -71,9 +77,10 @@ class Plot_Stacked_Graphs:
         self.text.config(state='disabled')
 
         # Entries
-        self.Entry_offset = My_Float_Entry(self.entry_frame, "Multi-line offset", 1, 0, 0)
-        self.Entry_Line_Thickn = My_Float_Entry(self.entry_frame, "Line thickness", 0.5, 0, 1)
-        self.Entry_title = My_Label_Entry(self.entry_frame, "Title", 1, 0)
+        self.Entry_offset = My_Float_Entry(self.entry_frame, "Multi-graph offset", 1, 0, 0)
+        self.Entry_Line_Thickn = My_Float_Entry(self.entry_frame, "Graph line thickness", 0.5, 0, 1)
+        self.Entry_title = My_Label_Entry(self.entry_frame, "Figure title", 1, 0, 4)
+        self.Entry_PDF_thickness = My_Float_Entry(self.entry_frame, "PDF-line thickness", 0.09, 1, 1)
 
         # 'Add line to plot' stuff
         self.b_add_line = tk.Button(self.add_line_to_plot_frame, text="Add line", command=self.callback_add_line)
@@ -120,8 +127,8 @@ class Plot_Stacked_Graphs:
 
         # Add PDF buttons and more
         self.Entry_Bar_Height = My_Float_Entry(self.add_PDFs_frame, "PDF height", 4, 0, 1, 4)
-        self.PDF_Label = tk.Label(self.add_PDFs_frame, text="Predef PDF-data")
-        self.PDF_Label.grid(row=0, column=0, columnspan=9, sticky="NW")
+        #self.PDF_Label = tk.Label(self.add_PDFs_frame, text="Predef PDF-data")
+        #self.PDF_Label.grid(row=0, column=0, columnspan=9, sticky="NW")
 
         self.b_add_PDF1 = tk.Button(self.add_PDFs_frame, text=" Temp1 ", command=self.callback_add_PDF1)
         self.b_add_PDF1.grid(row=2, column=0, sticky="NW", padx=2)
@@ -198,7 +205,7 @@ class Plot_Stacked_Graphs:
     def plot_lines_from_tuples(self, t_list, color):
         y_val = self.Entry_Bar_Height.get_value()
         for tup in t_list:
-            plt.bar(tup[0], height=y_val, width=0.1, color=color, linestyle="-")
+            plt.bar(tup[0], height=y_val, width=self.Entry_PDF_thickness.get_value(), color=color, linestyle="-")
             plt.text(tup[0], y_val-1, tup[1], {'ha': 'right'}, rotation=90, color=color)
         plt.show()
 
@@ -230,10 +237,12 @@ class Plot_Stacked_Graphs:
 
     def callback_plot_button(self):
         plt.clf()
-        for file_index in reversed(range(len(self.file_data))):
+        Number_of_graphs = len(self.file_data)
+
+        for file_index in range(len(self.file_data)):
             angles = self.file_data[file_index].Column1
             label = self.data_labels[file_index].get_value()
-            offset = self.Entry_offset.get_value() * file_index
+            offset = self.Entry_offset.get_value() * (Number_of_graphs - file_index)
             Line_thickness = self.Entry_Line_Thickn.get_value()
 
             if self.selection_index == 0: #linear
@@ -256,7 +265,7 @@ class Plot_Stacked_Graphs:
     def callback_import_all_button(self):
         for data_in_file in self.o_file_handler.List_of_file_contents:
             self.no_files_index += 1
-            data_in_file.extract_columns(" ")
+            data_in_file.extract_columns()
             self.file_data.append(data_in_file)
 
             new_entry = My_Label_Entry(self.label_entry_frame, data_in_file.file_name, self.no_files_index, 0)
@@ -267,7 +276,7 @@ class Plot_Stacked_Graphs:
     def callback_import_button(self):
         self.no_files_index += 1
         data = self.o_file_handler.get_current_data()
-        data.extract_columns(" ")
+        data.extract_columns()
         self.file_data.append(data)
 
         new_entry = My_Label_Entry(self.label_entry_frame, data.file_name, self.no_files_index, 0)

@@ -1,4 +1,5 @@
 import tkinter as tk
+import tkscrolledframe as SF
 import tkinter.filedialog as filedialog
 import os
 import Util.Definitions as Defs
@@ -6,15 +7,25 @@ import Util.Data_Container as Data_Cont
 
 class file_handler:
 
-    def __init__(self, frame_info):
-        self.frame_info = frame_info
+    def __init__(self, frame_info_file_handler):
+        self.frame_info_file_handler = frame_info_file_handler
 
-        self.b_next = tk.Button(self.frame_info, text="-->", command=self.callback_next_file)
+        self.b_next = tk.Button(self.frame_info_file_handler, text="-->", command=self.callback_next_file)
         self.b_next.config(bg=Defs.c_black, fg=Defs.c_white)
         self.b_next.grid(row=0, column=2, sticky="E")
-        self.b_prev = tk.Button(self.frame_info, text="<--", command=self.callback_prev_file)
+        self.b_prev = tk.Button(self.frame_info_file_handler, text="<--", command=self.callback_prev_file)
         self.b_prev.config(bg=Defs.c_black, fg=Defs.c_white)
         self.b_prev.grid(row=0, column=0, sticky="W")
+        self.l_info = tk.Label(self.frame_info_file_handler, text="Available files", bg=Defs.c_frame_color, fg="white")
+        self.l_info.config()
+        self.l_info.grid(row=0, column=1, sticky="W")
+
+        self.sframe = SF.ScrolledFrame(self.frame_info_file_handler, width=210, height=310)
+        self.sframe.grid(row=1, column=0, columnspan=3)
+        self.sframe.config(bg=Defs.c_frame_color)
+        self.sframe.bind_arrow_keys(self.frame_info_file_handler)
+        self.sframe.bind_scroll_wheel(self.frame_info_file_handler)
+        self.inner_frame = self.sframe.display_widget(tk.Frame)
 
         # index of the current active file!
         self.index_current_file = 0
@@ -64,9 +75,9 @@ class file_handler:
         for f in f_list:
             if f is not None:
                 lines = f.read().splitlines() #list of lines without \n.
-                label = tk.Label(self.frame_info, text=os.path.basename(f.name))
+                label = tk.Label(self.inner_frame, text=os.path.basename(f.name))
 
-                self.List_of_file_contents.append(Data_Cont.Data_Container_2_Columns(lines, os.path.basename(f.name)))
+                self.List_of_file_contents.append(Data_Cont.Data_Container(lines, os.path.basename(f.name)))
                 self.List_of_file_name_labels.append(label)
             else:
                 print("Nothing opened")
