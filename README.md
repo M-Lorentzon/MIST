@@ -1,4 +1,4 @@
-# MIST
+# MIST - Miniature Imaging and Scripting Tool
 
 This program was the result from trying to make life as an up and comming scientist a little easier in terms of plotting and analyzing data quickly in the form of Python scripts. 
 
@@ -24,6 +24,8 @@ Other libraries are used to handle various tasks.
 This is my first attempt at a python software... Bugs may (do...) exist in the code and the code itself is probably not written in the most "python-ish" way... 
 I take no responsibility for the quality or accuracy of the calculations and graphs.
 With that said, I hope this software can be useful for you!
+
+
 
 Copyright 2021-2022 Marcus Lorentzon
 
