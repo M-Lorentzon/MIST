@@ -7,6 +7,7 @@ from Util.My_Float_Entry import My_Float_Entry
 from Util.My_Label_Entry import My_Label_Entry
 import Util.Definitions as Defs
 from Text_Plotter import Text_Plotter
+import Util.My_SF_Selection_Entry_Container as SF_cont
 
 from Util.List_Of_Strings_Container import List_Of_Strings_Container
 
@@ -42,7 +43,7 @@ class Plugin_Pole_fig:
 
         self.my_frame = tk.Frame(self.script_frame, bg=Defs.c_script_entries)
 
-        self.sframe = SF.ScrolledFrame(self.my_frame, width=400, height=340)
+        self.sframe = SF.ScrolledFrame(self.my_frame, width=400, height=200)
         self.sframe.grid(row=10, column=0, columnspan=3)
         self.sframe.config(bg=Defs.c_frame_color)
         self.sframe.bind_arrow_keys(self.my_frame)
@@ -103,7 +104,7 @@ class Plugin_Pole_fig:
         self.b_sqrt = tk.Button(self.plot_selection_frame, text="SQRT", command=self.callback_sqrt_button)
         self.b_sqrt.grid(row=0, column=2, sticky="NW")
         self.b_sqrt.config(width=8)
-        self.callback_log_button() # Start with Log as default!
+        self.callback_linear_button() # Start with Linear as default!
 
         # Plotting 2D buttons etc.
         self.Entry_2D_plot_label = My_Label_Entry(self.plot_2D_frame, "Plot title", 2, 0, 4)
@@ -134,38 +135,37 @@ class Plugin_Pole_fig:
         # File data imported in form of container class
         self.no_files_index = 0
         self.file_data = []
-        self.data_labels = []
+        self.label_container = SF_cont.My_SF_Selection_Entry_Container(self.my_frame, 400, 200, 10, 0)
 
         # Results stored from concatenating and calculating all imported files.
         self.results = List_Of_Strings_Container()
 
         # Plotting objects and settings
-        self.fig_2D, self.ax_2D = plt.subplots(num=102, subplot_kw={'projection' : 'polar'})
-        self.fig_2D.suptitle("Pole figure 2D: ", fontsize=16)
+        self.fig_2D = None
+        self.ax_2D = None
 
-        self.fig_3D = plt.figure(103)
-        self.ax_3D = self.fig_3D.add_subplot(projection='3d')
-        self.fig_3D.suptitle("Pole figure 3D: ", fontsize=16)
-        self.init_plots()
-
-    def init_plots(self):
-        plt.close(self.fig_3D)
-        plt.close(self.fig_2D)
-        plt.show()
+        self.fig_3D = None
+        self.ax_3D = None
 
     def callback_plot_button(self):
         self.plot_3D()
         self.plot_2D()
         plt.show()
 
+    def on_close_3D_fig(self, event):
+        print("closed window")
+        self.fig_3D = None
+        self.ax_3D = None
+
     def plot_3D(self):
-        print("3D plot")
-        if plt.get_fignums():
-            #self.fig_3D.clf()
-            plt.close(self.fig_3D)
-        self.fig_3D = plt.figure(103)
-        self.ax_3D = self.fig_3D.add_subplot(projection='3d')
-        self.fig_3D.suptitle(self.Entry_3D_plot_label.get_value(), fontsize=16)
+
+        if self.fig_3D == None:
+            self.fig_3D = plt.figure(103)
+            self.ax_3D = self.fig_3D.add_subplot(projection='3d')
+            self.fig_3D.suptitle("Pole figure 3D: ", fontsize=16)
+            self.fig_3D.canvas.mpl_connect('close_event', self.on_close_3D_fig)
+
+        self.ax_3D.cla()
 
         Thetas = np.array(self.get_thetas(self.file_data[0]))
         # ____________
@@ -173,10 +173,14 @@ class Plugin_Pole_fig:
         # ____________
         Z = np.array(self.get_z_values())
 
+        #print("Thetas: ", len(Thetas), "Azimuths: ", len(Azimuths), "Z: ", len(Z))
+
         Thetas_2D_array, Azimuths_2D_array = np.meshgrid(np.radians(Thetas), Azimuths)
 
         X = Azimuths_2D_array * np.cos(Thetas_2D_array)
         Y = Azimuths_2D_array * np.sin(Thetas_2D_array)
+
+        self.fig_3D.suptitle(self.Entry_3D_plot_label.get_value(), fontsize=16)
 
         self.ax_3D.plot_surface(X, Y, Z, cmap='jet', alpha=0.75)
         #self.ax_3D.set_axis_off()
@@ -186,8 +190,8 @@ class Plugin_Pole_fig:
         Thetas = range(0, 360, int(self.Entry_theta_spacing.get_value()))
         self.ax_2D.set_xticks(np.radians(Thetas))
 
-        Small_Chi = self.data_labels[1].get_value()
-        Large_Chi = self.data_labels[self.no_files_index-1].get_value()
+        Small_Chi = self.label_container.get_first_entry().get_value()
+        Large_Chi = self.label_container.get_last_entry().get_value()
         Chis = range(int(Small_Chi), int(Large_Chi), int(self.Entry_Chi_spacing.get_value()))
         self.ax_2D.set_yticks(Chis)
         plt.show()
@@ -203,13 +207,19 @@ class Plugin_Pole_fig:
         self.ax_2D.set_axis_off()
         plt.show()
 
-    def plot_2D(self):
-        if plt.get_fignums():
-            #self.fig_2D.clf()
-            plt.close(self.fig_2D)
-        self.fig_2D, self.ax_2D = plt.subplots(num=102, subplot_kw={'projection' : 'polar'})
-        self.fig_2D.suptitle(self.Entry_2D_plot_label.get_value(), fontsize=16)
+    def on_close_2D_fig(self, event):
+        print("closed window")
+        self.fig_2D = None
+        self.ax_2D = None
 
+    def plot_2D(self):
+
+        if self.fig_2D == None:
+            self.fig_2D, self.ax_2D = plt.subplots(num=102, subplot_kw={'projection': 'polar'})
+            self.fig_2D.suptitle("Pole figure 2D: ", fontsize=16)
+            self.fig_2D.canvas.mpl_connect('close_event', self.on_close_2D_fig)
+
+        self.ax_2D.cla()
         # ____________
         Thetas = np.array(self.get_thetas(self.file_data[0]))
         # ____________
@@ -217,18 +227,25 @@ class Plugin_Pole_fig:
         # ____________
         Values = np.array(self.get_z_values())
 
+        print("Thetas: ", len(Thetas), "Azimuths: ", len(Azimuths), "Values: ", len(Values))
+
+        print(Values)
+
         # Create 2D-arrays of polar coordinates
         theta_, asimuths_ = np.meshgrid(np.radians(Thetas), Azimuths)
 
-        #print("Values shape: ", Values.shape)
-        #print("Theta shape: ", Thetas.shape)
-        #print("Azimuth shape", Azimuths.shape)
+        print("Values shape: ", Values.shape)
+        print("Theta shape: ", Thetas.shape)
+        print("Azimuth shape", Azimuths.shape)
 
         cax = self.ax_2D.contourf(theta_, asimuths_, Values, 75, cmap='jet')
         self.ax_2D.set_theta_zero_location("N")
         self.ax_2D.set_theta_direction(-1)
         cb = self.fig_2D.colorbar(cax, pad=0.15)
         cb.set_label(self.get_2d_counts_label())
+
+        self.fig_2D.suptitle(self.Entry_2D_plot_label.get_value(), fontsize=16)
+
         self.callback_update_axis_2D_button()
 
     def get_z_values(self):
@@ -243,23 +260,18 @@ class Plugin_Pole_fig:
             elif self.plot_selection_index == 2 :
                 Temp_list = self.file_data[file].get_col2_in_sqrt_with_offset(0)
 
-            Temp_list.append((Temp_list[-1]+Temp_list[0])/2)
-            Temp_list.insert(0, (Temp_list[-1]+Temp_list[0])/2)
             temp_values.append(Temp_list)
 
         return temp_values
 
     def get_azimuths(self):
-        temp_azimuth = []
-        for file in range(self.no_files_index):
-            temp_azimuth.append(self.data_labels[file].get_value())
-        return temp_azimuth
+        return self.label_container.get_list_of_all_entry_values()
 
     def get_thetas(self, file_container):
-        temp_thetas = [0]
+        temp_thetas = []
         for element in file_container.get_col1():
             temp_thetas.append(element)
-        temp_thetas.append(360)
+        # temp_thetas.append(360) ## For closed circle
         return temp_thetas
 
     def get_2d_counts_label(self):
@@ -282,7 +294,7 @@ class Plugin_Pole_fig:
             Lin_Intensity = self.file_data[file].get_col2_in_linear_with_offset(0)
             Log_Intensity = self.file_data[file].get_col2_in_log_with_offset(0)
             sqrt_Intensity = self.file_data[file].get_col2_in_sqrt_with_offset(0)
-            Chi = self.data_labels[file].get_value()
+            Chi = self.label_container.get_entry_value(file)
 
             # Write the data to csv-file!
             for index in range(len(Phi)):
@@ -298,9 +310,7 @@ class Plugin_Pole_fig:
         data.extract_columns()
         self.file_data.append(data)
 
-        new_entry = My_Float_Entry(self.label_entry_frame, data.file_name, 0, self.no_files_index, 0)
-        new_entry.set_label_bg("seagreen1")
-        self.data_labels.append(new_entry)
+        self.label_container.add_float_entry(data.file_name, self.Entry_Chi.get_value())
 
     def callback_import_all_button(self):
 
@@ -309,17 +319,12 @@ class Plugin_Pole_fig:
             data_in_file.extract_columns()
             self.file_data.append(data_in_file)
 
-            new_entry = My_Float_Entry(self.label_entry_frame, data_in_file.file_name, 0, self.no_files_index, 0)
-            new_entry.set_label_bg("seagreen1")
-            new_entry.set_entry_value(self.Entry_Chi.get_value() * (self.no_files_index - 1))
-            self.data_labels.append(new_entry)
+            self.label_container.add_float_entry(data_in_file.file_name, self.Entry_Chi.get_value() * (self.no_files_index - 1))
 
     def callback_clear_files_button(self):
+        self.file_data.clear()
+        self.label_container.remove_all_entries()
         self.no_files_index = 0
-        for label_ in self.data_labels :
-            label_.hide()
-        self.file_data[:] = []
-        self.data_labels[:] = []
 
 
     def get_results(self):

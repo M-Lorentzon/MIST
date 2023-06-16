@@ -1,67 +1,60 @@
 import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
 from Util.csv_string_human_readable import *
+import Util.Definitions as Defs
 
 class Text_Plotter:
 
-    def __init__(self, master_frame):
-        self.master_frame = master_frame
-
-        self.frame_mos = tk.Frame(self.master_frame)
-        self.frame_xrd1 = tk.Frame(self.master_frame)
-        self.frame_pole_fig = tk.Frame(self.master_frame)
-
-        self.mos_text = ScrolledText(self.frame_mos, width=70, height=58)
-        self.mos_text.grid(row=0, column=0)
-        self.mos_text.config(state="normal")
-
-        self.xrd1_text = ScrolledText(self.frame_xrd1, width=70, height=58)
-        self.xrd1_text.grid(row=0, column=0)
-        self.xrd1_text.config(state="normal")
-
-        self.pole_fig_text = ScrolledText(self.frame_pole_fig, width=70, height=58)
-        self.pole_fig_text.grid(row=0, column=0)
-        self.pole_fig_text.config(state="normal")
+    def __init__(self):
+        pass
 
 
     def plot_XRD1(self, string_list):
-        self.hide_all_plots()
-        self.frame_xrd1.grid(row=0, column=0)
-        self.xrd1_text.delete('1.0', "end")
+
+        master_frame = tk.Toplevel(bg=Defs.c_frame_color)
+        frame_xrd1 = tk.Frame(master_frame)
+        frame_xrd1.grid()
+        xrd1_text = ScrolledText(frame_xrd1, width=70, height=58)
+        xrd1_text.grid(row=0, column=0)
+        xrd1_text.config(state="normal")
+
 
         No_Chars = 12
-        self.xrd1_text.insert("end", csv_to_human_readable("Angle,Intensity,Sqrt,Log,log+offs", No_Chars))
-        self.xrd1_text.insert("end", "\n")
+        xrd1_text.insert("end", csv_to_human_readable("Angle,Intensity,Sqrt,Log,log+offs", No_Chars))
+        xrd1_text.insert("end", "\n")
         for s in string_list:
-            self.xrd1_text.insert("end", csv_to_human_readable(s, No_Chars))
-            self.xrd1_text.insert("end", "\n")
+            xrd1_text.insert("end", csv_to_human_readable(s, No_Chars))
+            xrd1_text.insert("end", "\n")
 
     def plot_MOS(self, string_list):
-        self.hide_all_plots()
-        self.frame_mos.grid(row=0, column=0)
-        self.mos_text.delete('1.0', "end")
+
+        master_frame = tk.Toplevel(bg=Defs.c_frame_color)
+        frame_mos = tk.Frame(master_frame)
+        frame_mos.grid()
+        mos_text = ScrolledText(frame_mos, width=70, height=58)
+        mos_text.grid(row=0, column=0)
+        mos_text.config(state="normal")
 
         No_Chars = 12
-        self.mos_text.insert("end", csv_to_human_readable("Time,First,Second,Relax,Total_T,Value", No_Chars))
-        self.mos_text.insert("end", "\n")
+        mos_text.insert("end", csv_to_human_readable("Time,First,Second,Relax,Total_T,Value", No_Chars))
+        mos_text.insert("end", "\n")
         for s in string_list:
-            self.mos_text.insert("end", csv_to_human_readable(s, No_Chars))
-            self.mos_text.insert("end", "\n")
+            mos_text.insert("end", csv_to_human_readable(s, No_Chars))
+            mos_text.insert("end", "\n")
 
     def plot_Pole_text(self, string_list):
-        self.hide_all_plots()
-        self.frame_pole_fig.grid(row=0, column=0)
-        self.pole_fig_text.delete('1.0', "end")
+
+        master_frame = tk.Toplevel(bg=Defs.c_frame_color)
+        frame_pole_fig = tk.Frame(master_frame)
+        frame_pole_fig.grid()
+        pole_fig_text = ScrolledText(frame_pole_fig, width=70, height=58)
+        pole_fig_text.grid(row=0, column=0)
+        pole_fig_text.config(state="normal")
 
         No_Chars = 10
-        self.pole_fig_text.insert("end", csv_to_human_readable("Phi,Chi,Linear,Log,Sqrt", No_Chars))
-        self.pole_fig_text.insert("end", "\n")
+        pole_fig_text.insert("end", csv_to_human_readable("Phi,Chi,Linear,Log,Sqrt", No_Chars))
+        pole_fig_text.insert("end", "\n")
         for s in string_list:
-            self.pole_fig_text.insert("end", csv_to_human_readable(s, No_Chars))
-            self.pole_fig_text.insert("end", "\n")
+            pole_fig_text.insert("end", csv_to_human_readable(s, No_Chars))
+            pole_fig_text.insert("end", "\n")
 
-
-    def hide_all_plots(self):
-        self.frame_mos.grid_forget()
-        self.frame_xrd1.grid_forget()
-        self.frame_pole_fig.grid_forget()

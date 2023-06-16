@@ -24,6 +24,9 @@ class My_Float_Entry:
     def set_label_bg(self, color):
         self.label.config(bg=color)
 
+    def set_entry_width(self, width):
+        self.Entry.config(width=width)
+
     def get_value(self):
         value = self.Entry.get()
 

@@ -5,7 +5,7 @@ class Error_Handler :
     def __init__(self, frame):
         self.frame = frame
 
-        self.error_text = ScrolledText(self.frame, width=26, height=10)
+        self.error_text = ScrolledText(self.frame, width=26, height=16)
         self.error_text.grid(row=0, column=0)
         self.error_text.config(state="normal")
 

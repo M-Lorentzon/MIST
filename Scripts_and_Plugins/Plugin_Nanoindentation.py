@@ -75,12 +75,19 @@ class Plugin_Nanoindent:
         # Calculated data in string .csv format
         self.results = []
 
-        self.fig_indent, self.ax_indent = plt.subplots(num=104)
-        plt.close(self.fig_indent)
+        self.fig_indent = None
+        self.ax_indent = None
+
+    def on_close(self, event):
+        self.fig_indent = None
+        self.ax_indent = None
 
     def callback_plot_button(self):
-        plt.close(self.fig_indent)
-        self.fig_indent, self.ax_indent = plt.subplots(num=104)
+        if self.fig_indent == None:
+            self.fig_indent, self.ax_indent = plt.subplots(num=104)
+            self.fig_indent.canvas.mpl_connect('close_event', self.on_close)
+        self.ax_indent.cla()
+
         for index, data in enumerate(self.file_data) :
             depths = data.get_col1()
             loads = data.get_col2()

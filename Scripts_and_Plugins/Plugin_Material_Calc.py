@@ -3,6 +3,8 @@ import Util.Definitions as Defs
 import math as math
 from Util.My_Float_Entry import My_Float_Entry
 from tkinter.scrolledtext import ScrolledText
+from Scripts_and_Plugins.Calculations_Scripts.Calculate_angle_between_hexagonal_planes import *
+from Scripts_and_Plugins.Calculations_Scripts.Calculate_angle_between_cubic_planes import *
 
 Description = """This script is used for calculations
 of frequent equations. 
@@ -37,14 +39,19 @@ class Plugin_Material_Calc:
         self.calculation_selection_frame = tk.Frame(self.my_frame, highlightbackground="black", highlightthickness=1, bg=Defs.c_script_entries)
         self.calculation_selection_frame.grid(row=2, column=0)
         self.lattice_param_calc_frame = tk.Frame(self.my_frame, highlightbackground="black", highlightthickness=1, bg=Defs.c_script_entries)
-        self.lattice_param_calc_frame.grid(row=3, column=0)
+        self.Hexagonal_angle_calculation_frame =  tk.Frame(self.my_frame, highlightbackground="black", highlightthickness=1, bg=Defs.c_script_entries)
+        self.Cubic_angle_calculation_frame = tk.Frame(self.my_frame, highlightbackground="black", highlightthickness=1, bg=Defs.c_script_entries)
         self.display_frame = tk.Frame(self.my_frame, highlightbackground="black", highlightthickness=1, bg=Defs.c_script_entries)
         self.display_frame.grid(row=4, column=0)
 
         # Selection buttons
         self.b_lattice_param = tk.Button(self.calculation_selection_frame, text="Lat param", command=self.callback_lattice_button)
-        self.b_lattice_param.config(width=8)
         self.b_lattice_param.grid(row=0, column=0, sticky="NW")
+
+        self.b_hex_calc = tk.Button(self.calculation_selection_frame, text="Hex angles", command=self.callback_hexagonal_angles_button)
+        self.b_hex_calc.grid(row=0, column=1, sticky="NW")
+        self.b_cub_calc = tk.Button(self.calculation_selection_frame, text="Cube angles", command=self.callback_cubic_angles_button)
+        self.b_cub_calc.grid(row=0, column=2, sticky="NW")
 
         # Result text and other stuff for results
         self.result_text = ScrolledText(self.display_frame, width=45, height=8)
@@ -67,10 +74,27 @@ class Plugin_Material_Calc:
         self.latt_wavelength = My_Float_Entry(self.lattice_param_calc_frame, "Lambda [Å]:", 1.5406, 3, 0)
         self.latt_2theta = My_Float_Entry(self.lattice_param_calc_frame, " 2Theta: ", 12.34, 3, 1)
 
+        ### Calculation scripts
+        self.o_calculate_angle_hexagonal = calculate_angle_between_hexagonal_planes(self.print_results, self.Hexagonal_angle_calculation_frame)
+        self.o_calculate_angle_cubic = calculate_angle_between_cubic_planes(self.print_results, self.Cubic_angle_calculation_frame)
+
         ### General stuff ###
-        self.selection_index = 0
+        self.selection_index = 0 # 0=lattice, 1=vector
         self.callback_lattice_button()
 
+    def callback_hexagonal_angles_button(self):
+        self.selection_index = 1
+        self.ungrid_sub_calc_frames()
+        self.Hexagonal_angle_calculation_frame.grid(row=3, column=0)
+        self.unmark_select_buttons()
+        self.b_hex_calc.config(bg=Defs.c_button_active)
+
+    def callback_cubic_angles_button(self):
+        self.selection_index = 1
+        self.ungrid_sub_calc_frames()
+        self.Cubic_angle_calculation_frame.grid(row=3, column=0)
+        self.unmark_select_buttons()
+        self.b_cub_calc.config(bg=Defs.c_button_active)
 
     def callback_lattice_button(self):
         self.selection_index = 0
@@ -94,9 +118,13 @@ class Plugin_Material_Calc:
     #### Help-functions #######
     def ungrid_sub_calc_frames(self):
         self.lattice_param_calc_frame.grid_forget()
+        self.Hexagonal_angle_calculation_frame.grid_forget()
+        self.Cubic_angle_calculation_frame.grid_forget()
 
     def unmark_select_buttons(self):
         self.b_lattice_param.config(bg=Defs.c_button_inactive)
+        self.b_hex_calc.config(bg=Defs.c_button_inactive)
+        self.b_cub_calc.config(bg=Defs.c_button_inactive)
 
     def print_results(self, line):
         self.line_index += 1
