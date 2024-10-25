@@ -76,6 +76,13 @@ class file_handler:
         else:
             return False
 
+    def check_if_panalytical_file(self, string):
+        list_of_file_endings = [".xrdml"]
+        if string in list_of_file_endings:
+            return True
+        else:
+            return False
+
     def new_file(self) :
         f_list = filedialog.askopenfiles(mode="r")
 
@@ -83,7 +90,12 @@ class file_handler:
             if f is not None:
                 label = tk.Label(self.inner_frame, text=os.path.basename(f.name))
 
-                if self.check_if_image_file(Path(f.name).suffix):
+                if self.check_if_panalytical_file(Path(f.name).suffix):
+                    empty_list = []
+                    self.List_of_file_contents.append(Data_Cont.Data_Container(empty_list, os.path.basename(f.name), f.name))
+                    self.List_of_file_name_labels.append(label)
+
+                elif self.check_if_image_file(Path(f.name).suffix): # Treat images in script only!
                     empty_list = []
                     self.List_of_file_contents.append(Data_Cont.Data_Container(empty_list, os.path.basename(f.name), f.name))
                     self.List_of_file_name_labels.append(label)
@@ -102,8 +114,8 @@ class file_handler:
             self.index_current_file = len(self.List_of_file_name_labels) - 1
             self.highlight_active_file()
 
-    def save_file(self, list_of_strings):
-        f = filedialog.asksaveasfile(mode="w", defaultextension=".csv", filetypes=(("Text file", "*.txt"), ("Comma separated file", "*.csv"), ("All files", "*.*")))
+    def save_file(self, list_of_strings, label=""):
+        f = filedialog.asksaveasfile(mode="w",initialfile=label, defaultextension=".xy", filetypes=(("Text file", "*.xy"), ("Comma separated file", "*.csv"), ("All files", "*.*")))
         if f is None:
             return
         for s in list_of_strings :
