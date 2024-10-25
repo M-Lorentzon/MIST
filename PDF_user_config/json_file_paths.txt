@@ -2,7 +2,7 @@
     "paths": [
         {
             "Calibration": "TBD",
-            "PONI": "C:/Users/malor06/Documents/Root/Material System/Hard coatings/Petra III data/New_Poni.poni",
+            "PONI": "C:\\Users\\malor06\\OneDrive - Link\u00f6pings universitet\\Root\\Material Systems\\Hard coatings\\Petra III data\\New_Poni.poni",
             "save_location": "C:/Users/malor06/Documents/Root/Material System/Hard coatings/Petra III data/Marcus/Selected diffratograms/Output of Integration/10 deg step"
         }
     ]
