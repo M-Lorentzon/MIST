@@ -27,5 +27,5 @@ With that said, I hope this software can be useful for you!
 
 
 
-Copyright 2021-2022 Marcus Lorentzon
+Copyright 2021-2024 Marcus Lorentzon
 
