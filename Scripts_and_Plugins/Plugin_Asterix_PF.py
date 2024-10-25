@@ -7,9 +7,12 @@ import tkscrolledframe as SF
 
 from Util.My_Float_Entry import My_Float_Entry
 from Util.My_Label_Entry import My_Label_Entry
+from Util.My_Integer_Entry import My_Integer_Entry
+
 import Util.Definitions as Defs
 from Text_Plotter import Text_Plotter
 import Util.My_SF_Selection_Entry_Container as SF_cont
+from Util.Color_Scheme_Selector import Color_Scheme_Selector
 
 from Util.List_Of_Strings_Container import List_Of_Strings_Container
 
@@ -84,7 +87,8 @@ class Plugin_Asterix_PF:
         self.Entry_Two_Theta = My_Float_Entry(self.entry_frame, "2Theta", 0, 4, 1)
         self.Entry_No_Data_Pts = My_Float_Entry(self.entry_frame, "Data Pts", 0, 4, 2)
 
-        self.Entry_phi_offset = My_Float_Entry(self.entry_frame, "Phi offset", 0, 5, 1)
+        self.Entry_ignore_chis = My_Integer_Entry(self.entry_frame, "# chis to ignore", 0, 5, 0)
+
 
 
         # Master Buttons
@@ -111,6 +115,12 @@ class Plugin_Asterix_PF:
         self.b_sqrt.config(width=8)
         self.callback_linear_button() # Start with Linear as default!
 
+        self.enable_3D_plot = True
+        self.b_enable_3d_plot = tk.Button(self.plot_selection_frame, text="3D plot", command=self.callback_enable_3D_plot_button)
+        self.b_enable_3d_plot.grid(row=0, column=3, sticky="NW")
+        self.b_enable_3d_plot.config(width=8)
+        self.callback_enable_3D_plot_button()
+
         # Plotting 2D buttons etc.
         self.Entry_2D_plot_label = My_Label_Entry(self.plot_2D_frame, "Plot title", 2, 0, 4)
         self.Entry_2D_plot_label.set_entry_value("Pole figure 2D")
@@ -127,6 +137,10 @@ class Plugin_Asterix_PF:
         self.b_color_selection.config(width=8)
         self.b_color_selection.grid(row=5, column=2, sticky="NW")
         self.callback_colorbar_button()
+
+        self.color_scheme = Color_Scheme_Selector(self.plot_2D_frame, 'jet', 3, 0)
+        self.Entry_phi_offset = My_Float_Entry(self.plot_2D_frame, "Phi offset", 0, 3, 1)
+        self.Entry_tick_label_size = My_Float_Entry(self.plot_2D_frame, "Tick label size", 12, 3, 2)
 
         self.b_update_axis = tk.Button(self.plot_2D_frame, text="Update", command=self.callback_update_axis_2D_button)
         self.b_update_axis.config(width=8)
@@ -161,8 +175,9 @@ class Plugin_Asterix_PF:
         self.ax_3D = None
 
     def callback_plot_button(self):
-        self.plot_3D()
         self.plot_2D()
+        if self.enable_3D_plot is True:
+            self.plot_3D()
         plt.show()
 
     def on_close_3D_fig(self, event):
@@ -242,7 +257,7 @@ class Plugin_Asterix_PF:
         
         if self.fig_2D is None:
             self.fig_2D, self.ax_2D = plt.subplots(num=Defs.fig_asterix_PF_2D, subplot_kw={'projection': 'polar'})
-            self.fig_2D.suptitle("Pole figure 2D: ", fontsize=16)
+            #self.fig_2D.suptitle("Pole figure 2D: ", fontsize=16)
             self.fig_2D.canvas.mpl_connect('close_event', self.on_close_2D_fig)
 
         self.ax_2D.cla()
@@ -251,27 +266,70 @@ class Plugin_Asterix_PF:
         #print("Len Phis: ", len(self.phi_list))
         #print("Len values: ", len(self.file_data))
 
-        phi_list_offset = [phi + self.Entry_phi_offset.get_value() for phi in self.phi_list]
+        phi_list_offset = []  # = [phi + self.Entry_phi_offset.get_value() for phi in self.phi_list]
+        for element in self.phi_list:
+            phi_list_offset.append(element + self.Entry_phi_offset.get_value())
+        ### To close the pole fig... ###
+        phi_list_offset.append(360 + self.Entry_phi_offset.get_value())
 
         # Create 2D-arrays of polar coordinates
         Phi_, Chi_ = np.meshgrid(np.radians(phi_list_offset), self.chi_list)
-        Values = np.array(self.get_z_values())
 
+        ### get_z_values modified to close the pole fig... ###
+        Intensities_ = self.get_z_values_closed_PF()
+
+        ignore_chi_steps = self.Entry_ignore_chis.get_value()
+        print(ignore_chi_steps)
+        print("Chi: ", Chi_)
+        print("Intensities: ", Intensities_)
+
+        Values = np.array(Intensities_)
+
+        #print("len of Phi_ = ", len(Phi_))
+        #print("len of Chi_ = ", len(Chi_))
+        #print("len of Values = ", len(Values))
+        #print("len of Values[0] = ", len(Values[0]))
 
         #print("Values shape: ", Values.shape)
         #print("Phi_ shape: ", Phi_.shape)
         #print("Chi_ shape", Chi_.shape)
 
-        cax = self.ax_2D.contourf(Phi_, Chi_, Values, 75, cmap='jet')
+        cax = self.ax_2D.contourf(Phi_[ignore_chi_steps:], Chi_[ignore_chi_steps:], Values[ignore_chi_steps:], 75, cmap=self.color_scheme.get_color())
         self.ax_2D.set_theta_zero_location("N")
         self.ax_2D.set_theta_direction(-1)
+        self.ax_2D.tick_params(labelsize=self.Entry_tick_label_size.get_value()) # Changes the size of tick labels! :)
         if self.selection_colorbar_enable == 1:
             cb = self.fig_2D.colorbar(cax, pad=0.15)
             cb.set_label(self.get_2d_counts_label())
 
-        self.fig_2D.suptitle(self.Entry_2D_plot_label.get_value(), fontsize=16)
+        #self.fig_2D.suptitle(self.Entry_2D_plot_label.get_value(), fontsize=16)
 
         self.callback_update_axis_2D_button()
+
+    def get_z_values_closed_PF(self):
+        temp_values = []
+
+        for sublist in self.file_data:
+            Temp_list = []
+            if self.plot_selection_index == 0:  # lin
+                for element in sublist:
+                    Temp_list.append(element)
+                Temp_list.append(sublist[0]) ### To close polefig
+
+            elif self.plot_selection_index == 1:  # log
+                for element in sublist:
+                    Temp_list.append(math.log(element+1))
+                Temp_list.append(math.log(sublist[0]+1)) ### To close polefig
+
+            elif self.plot_selection_index == 2:
+                for element in sublist:
+                    Temp_list.append(math.sqrt(element))
+                Temp_list.append(math.sqrt(sublist[0])) ### To close polefig
+
+            #print(Temp_list)
+            temp_values.append(Temp_list)
+
+        return temp_values
 
     def get_z_values(self):
         temp_values = []
@@ -279,13 +337,17 @@ class Plugin_Asterix_PF:
         for sublist in self.file_data:
             Temp_list = []
             if self.plot_selection_index == 0:  # lin
-                Temp_list = sublist
+                for element in sublist:
+                    Temp_list.append(element)
+
             elif self.plot_selection_index == 1:  # log
                 for element in sublist:
                     Temp_list.append(math.log(element+1))
+
             elif self.plot_selection_index == 2:
                 for element in sublist:
                     Temp_list.append(math.sqrt(element))
+
             #print(Temp_list)
             temp_values.append(Temp_list)
 
@@ -395,3 +457,12 @@ class Plugin_Asterix_PF:
         self.b_linear.config(bg=Defs.c_button_inactive)
         self.b_log.config(bg=Defs.c_button_inactive)
         self.b_sqrt.config(bg=Defs.c_button_inactive)
+
+
+    def callback_enable_3D_plot_button(self):
+        if self.enable_3D_plot is True :
+            self.b_enable_3d_plot.config(bg=Defs.c_button_inactive)
+            self.enable_3D_plot = False
+        else:
+            self.b_enable_3d_plot.config(bg=Defs.c_button_active)
+            self.enable_3D_plot = True

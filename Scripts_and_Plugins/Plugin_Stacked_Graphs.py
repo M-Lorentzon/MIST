@@ -78,7 +78,7 @@ class Plugin_Stacked_Graphs:
         self.label.grid(row=0, column=0)
         self.label.config(font=('Helvetica', 12, 'bold'))
         # Master description text
-        self.text = tk.Text(self.my_frame, width=50, height=20, bg=Defs.c_description_color)
+        self.text = tk.Text(self.my_frame, width=50, height=15, bg=Defs.c_description_color)
         self.text.grid(row=1, column=0, columnspan=20)
         self.text.insert(0.0, Description)
         self.text.config(state='disabled')

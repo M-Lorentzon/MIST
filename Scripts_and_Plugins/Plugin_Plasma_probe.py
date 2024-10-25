@@ -10,6 +10,9 @@ import matplotlib.pyplot as plt
 import Util.Definitions as Defs
 import numpy as np
 
+from pathlib import Path
+import webbrowser as webbrowser
+
 Description = """This script is a plotting tool plasma probe 
 measurements.
 
@@ -45,7 +48,7 @@ class Plugin_Plasma_probe:
         self.Area_probe_calc_frame = tk.Frame(self.my_frame, highlightbackground="black", highlightthickness=1, bg=Defs.c_script_entries)
         self.Area_probe_calc_frame.grid(row=7, column=0)
         self.Langmuir_probe_frame = tk.Frame(self.my_frame, highlightbackground="black", highlightthickness=1, bg=Defs.c_script_entries)
-        self.Langmuir_probe_frame.grid(row=8, column=0)
+        self.Langmuir_probe_frame.grid(row=9, column=0)
 
         self.Display_results_frame = tk.Frame(self.my_frame, highlightbackground="black", highlightthickness=1, bg=Defs.c_script_entries)
         self.Display_results_frame.grid(row=10, column=0)
@@ -73,6 +76,9 @@ class Plugin_Plasma_probe:
         self.b_plot = tk.Button(self.master_button_frame, text="Plot", command=self.callback_plot_button)
         self.b_plot.config(width=8)
         self.b_plot.grid(row=0, column=4, sticky="NW")
+        self.b_plasma_help = tk.Button(self.master_button_frame, text="Help Plasma", command=self.callback_help_button)
+        self.b_plasma_help.config(width=8)
+        self.b_plasma_help.grid(row=0, column=5, sticky="NW")
 
         # Result text and other stuff for results
         self.result_text = ScrolledText(self.Display_results_frame, width=45, height=8)
@@ -92,8 +98,8 @@ class Plugin_Plasma_probe:
         self.callback_linear_button()  # Start with Linear as default!
 
         ## Area probe calculations
-        self.b_calc_ion_atom_ratio = tk.Button(self.Area_probe_calc_frame, text="Ion/atom", command=self.callback_calc_ion_ratio_button)
-        self.b_calc_ion_atom_ratio.config(width=8)
+        self.b_calc_ion_atom_ratio = tk.Button(self.Area_probe_calc_frame, text="Calculate Ion/atom ratio", command=self.callback_calc_ion_ratio_button)
+        self.b_calc_ion_atom_ratio.config(width=20)
         self.b_calc_ion_atom_ratio.grid(row=1, column=0, sticky="NW")
 
         self.b_draw_v_line = tk.Button(self.Area_probe_calc_frame, text="Draw v-line", command=self.callback_draw_vline_button)
@@ -106,11 +112,13 @@ class Plugin_Plasma_probe:
         self.e_hline_pos = My_Float_Entry(self.Area_probe_calc_frame, "hline pos", 0, 0, 3)
 
         self.e_probe_current = My_Float_Entry(self.Area_probe_calc_frame, "Probe current [mA/cm2]", 1.775, 2, 0)
-        self.e_deposition_rate = My_Float_Entry(self.Area_probe_calc_frame, "Dep rate [nm/s]", 0.056, 2, 1)
+        self.e_correction_factor = My_Float_Entry(self.Area_probe_calc_frame, "Correction factor", 0.1, 2, 1)
         self.e_probe_area = My_Float_Entry(self.Area_probe_calc_frame, "Probe area [cm^2]", 1, 2, 2)
-        self.e_unitcell_volume = My_Float_Entry(self.Area_probe_calc_frame, "Unit cell volume [nm^3]", 0.076317, 3, 0)
-        self.e_atoms_in_unitcell = My_Float_Entry(self.Area_probe_calc_frame, "#Atoms/unit cell", 8, 3, 1)
-        self.e_correction_factor = My_Float_Entry(self.Area_probe_calc_frame, "Correction factor", 0.1, 3, 2)
+        self.e_surface_density = My_Float_Entry(self.Area_probe_calc_frame, "RBS density [10^15 atoms/cm2]", 1000, 3, 0)
+        self.e_deposition_time = My_Float_Entry(self.Area_probe_calc_frame, "Dep. time [s]", 2700, 3, 1)
+        #self.e_deposition_rate = My_Float_Entry(self.Area_probe_calc_frame, "Dep rate [nm/s]", 0.056, 2, 1)
+        #self.e_unitcell_volume = My_Float_Entry(self.Area_probe_calc_frame, "Unit cell volume [nm^3]", 0.076317, 3, 0)
+        #self.e_atoms_in_unitcell = My_Float_Entry(self.Area_probe_calc_frame, "#Atoms/unit cell", 8, 3, 1)
 
 
         ## Langmuir probe calculations
@@ -139,6 +147,12 @@ class Plugin_Plasma_probe:
         self.fig_langmuir = None
         self.ax_langmuir = None
 
+    def callback_help_button(self):
+        Script_Path = Path.cwd()
+        rel_path1 = "Supporting_documents\Plasma_probe_calculations.pptx"
+        file_path1 = (Script_Path / rel_path1).resolve()
+        webbrowser.open_new(file_path1)
+
     def callback_get_floating_button(self):
 
         for index, data in enumerate(self.positive_currents_data):
@@ -154,7 +168,7 @@ class Plugin_Plasma_probe:
 
         if self.fig_langmuir is None:
             self.fig_langmuir, self.ax_langmuir = plt.subplots(num=Defs.fig_langmuir)
-            self.fig_langmuir.canvas.mpl_connect('close_event', self.on_close_plasma)
+            self.fig_langmuir.canvas.mpl_connect('close_event', self.on_close_langmuir)
         self.ax_langmuir.cla()
 
         for index, data in enumerate(self.positive_currents_data):
@@ -210,24 +224,16 @@ class Plugin_Plasma_probe:
         return xres, yres
 
     def callback_calc_ion_ratio_button(self):
+        e_charge = 1.602176*10**(-19)
 
-        Area_1cm2 = 1E14
-        Vol_1nm_film = 1 * Area_1cm2
+        Atom_flux = self.e_surface_density.get_value() * 10**15 / self.e_deposition_time.get_value() # [atoms/(sec*cm2)]
+        Ion_flux = self.e_probe_current.get_value() * 0.001 * (1 - self.e_correction_factor.get_value()) / (e_charge * self.e_probe_area.get_value())
 
-        Number_unitcells_one_nm = Vol_1nm_film / self.e_unitcell_volume.get_value()
-        Number_atoms_one_nm = Number_unitcells_one_nm * self.e_atoms_in_unitcell.get_value()
+        Ion_to_atom_ratio = Ion_flux / Atom_flux
 
-        Time_1nm = 1 / self.e_deposition_rate.get_value()
-        Number_atoms_per_second = Number_atoms_one_nm / Time_1nm
-
-        Ion_flux_density = (1 - self.e_correction_factor.get_value()) / (1.602176*10**(-19)) * self.e_probe_current.get_value() * 0.001
-        Ion_flux_per_area = Ion_flux_density / self.e_probe_area.get_value()
-
-        Ion_atom_ratio = Ion_flux_per_area / Number_atoms_per_second
-
-        self.print_results("Number atoms: " + str(Number_atoms_per_second))
-        self.print_results("Number ions: " + str(Ion_flux_per_area))
-        self.print_results("J_ion / J_atom = " + str(Ion_atom_ratio) + "\n")
+        self.print_results("Atom flux: " + str(Atom_flux))
+        self.print_results("Ion flux: " + str(Ion_flux))
+        self.print_results("J_ion / J_atom = " + str(Ion_to_atom_ratio) + "\n")
 
     def callback_draw_vline_button(self):
         xval = self.e_vline_pos.get_value()

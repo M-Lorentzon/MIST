@@ -186,6 +186,8 @@ class Plugin_XPS_data:
         new_entry.set_label_bg("seagreen1")
         self.data_labels.append(new_entry)
 
+        print(float(1.4e+003))
+
     def callback_import_all_button(self):
         ignore_rows = 7
         for data_in_file in self.o_file_handler.List_of_file_contents:

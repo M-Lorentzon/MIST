@@ -76,6 +76,12 @@ class Plugin_SRIM:
         self.b_log_X = tk.Button(self.select_button_frame, text="Log", command=self.callback_log_button_X)
         self.b_log_X.grid(row=5, column=2, sticky="NW")
 
+        self.Entry_Line_Thickn = My_Float_Entry(self.entry_frame, "Graph line thickness", 0.5, 1, 1)
+        self.e_xlim_min = My_Float_Entry(self.entry_frame, "xlim min, 10^_", 3, 2, 0)
+        self.e_xlim_max = My_Float_Entry(self.entry_frame, "xlim max, 10^_", 9, 2, 1)
+        self.e_ylim_min = My_Float_Entry(self.entry_frame, "ylim min, 10^_", -4, 3, 0)
+        self.e_ylim_max = My_Float_Entry(self.entry_frame, "ylim max, 10^_", 4, 3, 1)
+
         self.selection_index_Y = 1
         self.label_Y = tk.Label(self.select_button_frame, text="Y-axis", bg=Defs.c_script_name)
         self.label_Y.grid(row=6, column=0)
@@ -109,16 +115,19 @@ class Plugin_SRIM:
             self.fig_stack.canvas.mpl_connect('close_event', self.on_close)
 
         self.ax_stack.cla()
+        Line_thickness = self.Entry_Line_Thickn.get_value()
+
         for file_index in range(len(self.file_data)):
             energy = self.file_data[file_index].Column1
             electronic_stopping = self.file_data[file_index].Column2
             nuclear_stopping = self.file_data[file_index].Column3
             sum_stopping = self.file_data[file_index].Column4
-            Line_thickness = 0.5
+            name =  self.data_labels[file_index].get_value()
 
-            self.ax_stack.plot(energy, electronic_stopping, label="Electronic", linewidth=Line_thickness)
-            self.ax_stack.plot(energy, nuclear_stopping, label="Nuclear", linewidth=Line_thickness)
-            self.ax_stack.plot(energy, sum_stopping, label="Sum", linewidth=Line_thickness)
+
+            self.ax_stack.plot(energy, electronic_stopping, label=name+" Electronic", linewidth=Line_thickness)
+            self.ax_stack.plot(energy, nuclear_stopping, label=name+" Nuclear", linewidth=Line_thickness)
+            self.ax_stack.plot(energy, sum_stopping, label=name+" Sum", linewidth=Line_thickness)
 
             if self.selection_index_Y == 0:
                 self.ax_stack.set_yscale("linear")
@@ -129,6 +138,14 @@ class Plugin_SRIM:
                 self.ax_stack.set_xscale("linear")
             elif self.selection_index_X == 1:
                 self.ax_stack.set_xscale("log")
+
+            min_power_x = self.e_xlim_min.get_value()
+            max_power_x = self.e_xlim_max.get_value()
+            min_power_y = self.e_ylim_min.get_value()
+            max_power_y = self.e_ylim_max.get_value()
+            self.ax_stack.set_xlim([10**min_power_x, 10**max_power_x])
+            self.ax_stack.set_ylim([10 ** min_power_y, 10 ** max_power_y])
+
 
             self.fig_stack.suptitle(self.file_data[file_index].get_name())
             self.ax_stack.set_ylabel("Stopping Power")
