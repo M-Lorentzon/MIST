@@ -19,10 +19,18 @@ fig_multi_1d_sycnhr_integr = 123
 fig_2d_WAX_output = 124
 fig_asterix_PF_2D = 150
 fig_asterix_PF_3D = 151
+fig_asterix_scans = 152
 fig_lattice_hex = 160
 fig_plasma = 170
 fig_langmuir = 171
+fig_cantilever = 180
 
+fig_RSM_q = 201
+fig_RSM_w = 202
+fig_RSM_fit = 203
+fig_RSM_plan = 204
+fig_RSM_plan_w = 205
+fig_RSM_Q_Space = 206
 
 c_red = "red"
 c_green = "green"

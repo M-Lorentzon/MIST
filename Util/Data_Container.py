@@ -39,6 +39,7 @@ class Data_Container:
                         except (ValueError):
                             print("ValueError in extracting data")
 
+
         ## print("Column1 = ", self.Column1)
         ## print("Column2 = ", self.Column2)
 
@@ -81,15 +82,15 @@ class Data_Container:
 
     def extract_columns_SRIM(self):
         self.clear_columns()
-        ignore_rows_top = 23
+        ignore_rows_top = 24
         ignore_rows_bottom = 13
 
         # create sublist to work with (remove top and bottom)
         Number_of_rows = len(self.list_of_lines)
         indices = range(ignore_rows_top, Number_of_rows-ignore_rows_bottom)
 
-        unit = self.list_of_lines[17]
-        print(unit)
+        unit = self.list_of_lines[18]
+        print("Unit is: ", unit)
 
         for index in indices:
             row = self.list_of_lines[index]
@@ -103,6 +104,39 @@ class Data_Container:
             self.Column5.append(self.convert_to_A(float(fixed_row[4]), fixed_row[5])) # Projected range
             self.Column6.append(self.convert_to_A(float(fixed_row[6]), fixed_row[7])) # Longitudinal straggling
             self.Column7.append(self.convert_to_A(float(fixed_row[8]), fixed_row[9])) # Lateral straggling
+
+
+    def extract_columns_help_Pambu(self):
+        # Take the data and construct x & y in columns 1 & 2...
+        self.clear_columns()
+        Data_row_ID = 25
+        Scan_step_row_ID = 14
+        Binding_energy_row_ID = 18
+        scale_x_row_ID = 27
+
+        data = self.list_of_lines[Data_row_ID]
+        listed_data = re.split(" ", data)
+
+        # Set intensities in Column2!
+        for element in listed_data:
+            self.Column2.append(float(element))
+
+
+        Number_elements = len(self.Column2)
+
+        # Get starting binding enery!
+        BE_row = self.list_of_lines[Binding_energy_row_ID]
+        BE_listed = re.split(" ", BE_row)
+        Binding_energy_start = float(BE_listed[-1])
+
+        # Get BE step
+        Scan_step = self.list_of_lines[Scan_step_row_ID]
+        Scan_step_listed = re.split(" ", Scan_step)
+        BE_step = float(Scan_step_listed[-1])
+
+        # Construct corresponding binding energy values (x-axis...)
+        for ix in range(Number_elements):
+            self.Column1.append(Binding_energy_start - ix * BE_step)
 
 
     def convert_to_eV(self, value, unit):

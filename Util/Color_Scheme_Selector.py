@@ -14,7 +14,7 @@ class Color_Scheme_Selector:
 
         self.dropvar = tk.StringVar(self.widget_frame, init_color)
 
-        self.colors = {"jet", "viridis", "gray", "coolwarm", "plasma", "cividis", "gist_earth"}
+        self.colors = {"jet", "viridis", "gray", "coolwarm", "plasma", "cividis", "gist_earth", "BrBG_r", "gnuplot", "copper", "copper_r", "ocean_r", "Greys", "winter", "winter_r"}
 
         self.droplist = tk.OptionMenu(self.widget_frame, self.dropvar, *self.colors)
         self.droplist.config(bg=Defs.c_color_selector)

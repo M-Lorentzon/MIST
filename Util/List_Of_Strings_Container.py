@@ -8,6 +8,23 @@ class List_Of_Strings_Container:
     def get_list(self):
         return self.String_List
 
+    def add_row_1(self, elem1, dec_places, delim):
+        The_String = self.round_if_float(elem1, dec_places)
+        self.String_List.append(The_String)
+
+    def add_row_2(self, elem1, elem2, dec_places, delim):
+        The_String = self.round_if_float(elem1, dec_places)
+        The_String += delim
+        The_String += self.round_if_float(elem2, dec_places)
+        self.String_List.append(The_String)
+
+    def add_row_3(self, elem1, elem2, elem3, dec_places, delim):
+        The_String = self.round_if_float(elem1, dec_places)
+        The_String += delim
+        The_String += self.round_if_float(elem2, dec_places)
+        The_String += delim
+        The_String += self.round_if_float(elem3, dec_places)
+        self.String_List.append(The_String)
 
     def add_row_4(self, elem1, elem2, elem3, elem4, dec_places, delim):
         The_String = self.round_if_float(elem1, dec_places)

@@ -69,6 +69,18 @@ class My_SF_Selection_Entry_Container:
         if self.index_max >= 0:
             self.index_current_highlight = 0
 
+    def add_entry(self, label):
+        self.index_max += 1
+
+        new_entry = My_Label_Entry(self.label_entry_frame, label, self.index_max, 0)
+        new_entry.set_label_bg("seagreen1")
+        new_entry.set_entry_value(label)
+
+        self.entries.append(new_entry)
+
+        if self.index_max >= 0:
+            self.index_current_highlight = 0
+
     def get_all_entries(self):
         return self.entries
 
